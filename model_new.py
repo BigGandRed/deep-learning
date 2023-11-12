@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[14]:
 
 
 import logging
@@ -27,7 +27,7 @@ device = torch.device("cpu") # 直接设置为CPU设备
 logging.info("使用 CUDA: %s, 设备: %s.", use_cuda, device)
 
 
-# In[2]:
+# In[15]:
 
 
 # split data to 10 fold
@@ -120,7 +120,7 @@ def all_data2fold(fold_num, num=10000):
 fold_data = all_data2fold(10)
 
 
-# In[3]:
+# In[16]:
 
 
 # build train, dev, test data
@@ -146,7 +146,7 @@ texts = f['text'].tolist()
 test_data = {'label': [0] * len(texts), 'text': texts}
 
 
-# In[4]:
+# In[17]:
 
 
 # build vocab
@@ -256,7 +256,7 @@ class Vocab():
 vocab = Vocab(train_data)
 
 
-# In[5]:
+# In[18]:
 
 
 # build module
@@ -394,7 +394,7 @@ class SentEncoder(nn.Module):
         return sent_hiddens
 
 
-# In[6]:
+# In[19]:
 
 
 # build model
@@ -453,7 +453,7 @@ class Model(nn.Module):
 model = Model(vocab)
 
 
-# In[7]:
+# In[20]:
 
 
 # build optimizer
@@ -500,7 +500,7 @@ class Optimizer:
         return res
 
 
-# In[8]:
+# In[21]:
 
 
 # build dataset
@@ -547,7 +547,7 @@ def get_examples(data, vocab, max_sent_len=256, max_segment=8):
     return examples
 
 
-# In[9]:
+# In[22]:
 
 
 # build loader
@@ -587,7 +587,7 @@ def data_iter(data, batch_size, shuffle=True, noise=1.0):
         yield batch
 
 
-# In[10]:
+# In[23]:
 
 
 # some function
@@ -608,7 +608,7 @@ def reformat(num, n):
     return float(format(num, '0.' + str(n) + 'f'))
 
 
-# In[11]:
+# In[24]:
 
 
 # build trainer
@@ -617,7 +617,7 @@ import time
 from sklearn.metrics import classification_report
 
 clip = 5.0
-epochs = 1
+epochs = 15
 early_stops = 3
 log_interval = 50
 
@@ -692,7 +692,7 @@ class Trainer():
         y_pred = []
         y_true = []
         for batch_data in data_iter(self.train_data, train_batch_size, shuffle=True):
-            torch.cuda.empty_cache()
+#             torch.cuda.empty_cache()
             batch_inputs, batch_labels = self.batch2tensor(batch_data)
             batch_outputs = self.model(batch_inputs)
             loss = self.criterion(batch_outputs, batch_labels)
@@ -740,7 +740,7 @@ class Trainer():
                                                                                   overall_losses,
                                                                                   during_time))
         if set(y_true) == set(y_pred) and self.report:
-            report = classification_report(y_true, y_pred, digits=4, target_names=self.target_names,zero_divison=1)
+            report = classification_report(y_true, y_pred, digits=4, target_names=self.target_names)
             logging.info('\n' + report)
 
         return f1
@@ -753,7 +753,7 @@ class Trainer():
         y_true = []
         with torch.no_grad():
             for batch_data in data_iter(data, test_batch_size, shuffle=False):
-                torch.cuda.empty_cache()
+#                 torch.cuda.empty_cache()
                 batch_inputs, batch_labels = self.batch2tensor(batch_data)
                 batch_outputs = self.model(batch_inputs)
                 y_pred.extend(torch.max(batch_outputs, dim=1)[1].cpu().numpy().tolist())
@@ -771,7 +771,7 @@ class Trainer():
                     '| epoch {:3d} | dev | score {} | f1 {} | time {:.2f}'.format(epoch, score, f1,
                                                                               during_time))
                 if set(y_true) == set(y_pred) and self.report:
-                    report = classification_report(y_true, y_pred, digits=4, target_names=self.target_names,zero_division=1)
+                    report = classification_report(y_true, y_pred, digits=4, target_names=self.target_names)
                     logging.info('\n' + report)
 
         return f1
@@ -816,7 +816,7 @@ class Trainer():
         return (batch_inputs1, batch_inputs2, batch_masks), batch_labels
 
 
-# In[12]:
+# In[25]:
 
 
 # train
@@ -824,7 +824,7 @@ trainer = Trainer(model, vocab)
 trainer.train()
 
 
-# In[13]:
+# In[26]:
 
 
 # test
